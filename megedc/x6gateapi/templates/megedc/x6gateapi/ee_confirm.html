@@ -1,0 +1,9 @@
+{% extends "megedc/x6gateapi/base_damin_form.html" %}
+
+{% block top_content %}
+{% for c_data in confirm_data %}
+<fieldset class="module aligned">
+{% include "megedc/x6gateapi/ee_confirm_table.html" %}
+</fieldset>
+{% endfor %}
+{% endblock %}

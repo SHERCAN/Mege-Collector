@@ -1,0 +1,141 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_modify billing_tags %}
+
+{% block extrahead %}
+{{ block.super }}
+<script src="{% url 'admin:jsi18n' %}"></script>
+{{ media }}
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "admin/css/widgets.css" %}">
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <form id="form_mckeck" action="{{ form_url }}" method="post" novalidate>
+        <div>
+            {% csrf_token %}
+            <input type="hidden" name="step" value="{{ step }}">
+            {% for customer, rental_data in data %}
+            <fieldset class="module aligned">
+                <h3>{{ customer.name }}</h3>
+                <div class="form-row">
+                    <div>
+                        <label>Legal id:</label>
+                        <div class="readonly">{{ customer.legal_id }}</div>
+                    </div>
+                </div>
+                {% for rental, measures_data in rental_data %}
+                <div class="inline-related">
+                    <fieldset class="module aligned">
+                    <h2>{{  rental.local.name }}</h2>
+                    <div class="inline-related"></div>
+                    <div class="form-row">
+                        <div>
+                            <label>Rental dates:</label>
+                            <div class="readonly">From {{ rental.start_at }}{% if rental.end_at %} to {{ rental.end_at }}{% endif %}</div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        {% for measure, result in measures_data %}
+                        <label>Results for {{ measure.name }}:</label>
+                        <div class="results">
+                            {% if result.ok %}
+                            <table>
+                                <thead>
+                                    <tr>
+                                        {% for header in result.table_view.headers %}
+                                        <th scope="col">
+                                            <div class="text"><span>{{ header }}</span></div>
+                                            <div class="clear"></div>
+                                        </th>
+                                        {% endfor %}
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tr>
+                                    {% for data in result.table_view.data %}
+                                    <td>{{ data }}</td>
+                                    {% endfor %}
+                                    <td>{{ form|get_form_field:result.filed_name }} Accept and user this</td>
+                                </tr>
+                            </table>
+                            <fieldset class="module aligned collapse collapsed">
+                                <h2>Details</h2>
+                                <div class="form-row field-tax_id">
+                                    <div>
+                                        <table>
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">
+                                                        <div class="text"><span>Name</span></div>
+                                                        <div class="clear"></div>
+                                                    </th>
+                                                    <th>
+                                                        <div class="text"><span>Value</span></div>
+                                                        <div class="clear"></div>
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            {% for name, value in result.data.items %}
+                                            <tr>
+                                                <td>{{ name }}</td>
+                                                <td>{{ value }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </table>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <fieldset class="module aligned collapse collapsed">
+                                <h2>Overwrite</h2>
+                                <div class="form-row field-tax_id">
+                                    <div>
+                                        {{ form|get_form_field:result.filed_name_ow }}
+                                    </div>
+                                </div>
+                            </fieldset>
+                            {% else %}
+                            Error: {{ result.error }}
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    </fieldset>
+                </div>
+                {% endfor %}
+            </fieldset>
+            {% endfor %}
+        </div>
+        <div class="submit-row">
+            <input type="submit" value="NEXT" class="default" name="NEXT">
+            <input type="button" id="accept_all" value="Check all" />
+            <a href="?step=main"><input type="button" value="PREV" name="PREV"></a>
+            <p class="deletelink-box"><input type="submit" value="Cancel" style="background: var(--delete-button-bg)" name="cancel"></p>
+        </div>
+    </form>
+</div>
+<script>
+    var accepted_all = false;
+    django.jQuery(document).ready(function(){
+        django.jQuery('#accept_all').click(function(){
+            django.jQuery("#form_mckeck input[for_accept='true']").prop( "checked" , !accepted_all );
+            accepted_all = !accepted_all;
+            django.jQuery('#accept_all').val(
+                accepted_all?'Uncheck all':'Check all'
+            );
+        });
+        django.jQuery("#form_mckeck input[for_accept='true']").change(function(){
+            if(!django.jQuery(this).is(':checked') && accepted_all) {
+                accepted_all = !accepted_all;
+                django.jQuery('#accept_all').val(
+                    accepted_all?'Uncheck all':'Check all'
+                );
+            }
+        });
+    });
+</script>
+{% endblock %}

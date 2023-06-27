@@ -1,0 +1,43 @@
+version: "3.9"
+
+networks:
+  local-net:
+    external: true
+    name: local-net
+
+services:
+  megedc-appserver:
+    image: ${MEGEDC_IMAGE_NAME}
+    command: "appserver"
+    ports:
+      - "${MEGEDC_PORT}:8000"
+    networks:
+      - local-net
+    volumes:
+      - "${MEGEDC_VOL_LOCAL_PATH}:/opt/mege-data-collector/data"
+    env_file:
+      - ${MEGEDC_APPSERVER_ENV_FILE}
+    restart: always
+
+  megedc-celery-worker:
+    image: ${MEGEDC_IMAGE_NAME}
+    command: "worker"
+    networks:
+      - local-net
+    volumes:
+      - "${MEGEDC_VOL_LOCAL_PATH}:/opt/mege-data-collector/data"
+    env_file:
+      - ${MEGEDC_APPSERVER_ENV_FILE}
+    restart: always
+
+  megedc-celery-beat:
+    image: ${MEGEDC_IMAGE_NAME}
+    command: "beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler --pidfile /tmp/celerybeat.pid"
+    networks:
+      - local-net
+    volumes:
+      - "${MEGEDC_VOL_LOCAL_PATH}:/opt/mege-data-collector/data"
+    env_file:
+      - ${MEGEDC_APPSERVER_ENV_FILE}
+    restart: always
+

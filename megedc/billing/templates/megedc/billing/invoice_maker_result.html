@@ -1,0 +1,75 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_modify %}
+
+{% block extrahead %}
+{{ block.super }}
+<script src="{% url 'admin:jsi18n' %}"></script>
+{{ media }}
+{% if not download_all %}
+<script type="text/javascript">
+    django.jQuery(document).ready(function(){
+        setTimeout(function(){
+            location.reload(true);
+        }, 10000);
+    });
+</script>
+{% endif %}
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "admin/css/widgets.css" %}">
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <form action="{{ form_url }}" method="post" novalidate>
+        <div class="form-row">
+            <div>
+                {% csrf_token %}
+                <input type="hidden" name="step" value="invoice_maker">
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">
+                                <div class="text"><span>Customer</span></div>
+                                <div class="clear"></div>
+                            </th>
+                            <th scope="col">
+                                <div class="text"><span>Invoice id</span></div>
+                                <div class="clear"></div>
+                            </th>
+                            <th scope="col">
+                                <div class="text"><span>Download</span></div>
+                                <div class="clear"></div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for invoice_data in invoices_data.values %}
+                        <tr>
+                            <td class="field-name">{{ invoice_data.invoice.customer.name }}</td>
+                            <td class="field-name">{{ invoice_data.invoice.invoice_id }}</td>
+                            {% if invoice_data.tasks_status == 'SUCCESS' %}
+                            <td class="field-name"><a href="{{ invoice_data.invoice.file.url }}">{{ invoice_data.invoice.file.name }}</a></td>
+                            {% else %}
+                            <td class="field-name">{{ invoice_data.tasks_status }}</td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="submit-row">
+            <input type="submit" value="FINISH" class="default" name="FINISH">
+            <a href="?step=header_select"><input type="button" value="PREV" name="PREV"></a>
+            {% if download_all %}
+            <a href="{{ download_all }}"><input type="button" value="Download all" name="donwload_all"></a>
+            {% endif %}
+            <p class="deletelink-box"><input type="submit" value="Cancel" style="background: var(--delete-button-bg)" name="cancel"></p>
+        </div>
+    </form>
+</div>
+{% endblock %}

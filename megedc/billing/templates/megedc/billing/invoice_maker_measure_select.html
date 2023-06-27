@@ -1,0 +1,134 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_modify %}
+
+{% block extrahead %}
+{{ block.super }}
+<script src="{% url 'admin:jsi18n' %}"></script>
+{{ media }}
+{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}">
+<link rel="stylesheet" type="text/css" href="{% static "admin/css/widgets.css" %}">
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <form action="{{ form_url }}" method="post" novalidate>
+        <div>
+            {% csrf_token %}
+            <input type="hidden" name="step" value="measure_check">
+            {% for customer_data in data %}
+            {% if customer_data.customer.id in actual_ids %}
+            <fieldset class="module aligned">
+                <h2>{{ customer_data.customer.name }}</h2>
+                <div class="form-row">
+                    <div>
+                        <label>Legal id:</label>
+                        <div class="readonly">{{ customer_data.customer.legal_id }}</div>
+                    </div>
+                </div>
+                {% for rental_data in customer_data.rentals %}
+                <div class="inline-related">
+                    <fieldset class="module aligned collapse">
+                    <h2>{{  rental_data.local.name }} | {{  customer_data.symbol }}  {{ rental_data.total|floatformat:2 }}</h2>
+                    <div class="inline-related"></div>
+                    <div class="form-row">
+                        <div>
+                            <label>Rental dates:</label>
+                            <div class="readonly">{{ rental_data.rental.start_at }} {% if rental_data.rental.end_at %}to {{ rental_data.rental.end_at }}{% endif %}</div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <label>Measures:</label>
+                        <div class="results">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th scope="col">
+                                            <div class="text"><span>Name</span></div>
+                                            <div class="clear"></div>
+                                        </th>
+                                        <th scope="col">
+                                            <div class="text"><span>Result</span></div>
+                                            <div class="clear"></div>
+                                        </th>
+                                        <th scope="col">
+                                            <div class="text"><span>Unit</span></div>
+                                            <div class="clear"></div>
+                                        </th>
+                                        <th scope="col">
+                                            <div class="text"><span>Amount</span></div>
+                                            <div class="clear"></div>
+                                        </th>
+                                        <th scope="col">
+                                            <div class="text"><span>Details</span></div>
+                                            <div class="clear"></div>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for measures_data in rental_data.measures %}
+                                    <tr>
+                                        <td class="field-name">{{ measures_data.measure.name }}</td>
+                                        <td class="field-name">{{ measures_data.result|floatformat:2 }}</td>
+                                        <td class="field-name">{{ measures_data.amount_unit }}</td>
+                                        <td class="field-name">{{  customer_data.symbol }} {{ measures_data.amount|floatformat:2 }}</td>
+                                        <td class="field-name">
+                                            <fieldset class="module aligned collapse">
+                                                <h2>Details</h2>
+                                                {% for key, value in measures_data.result_data.items %}
+                                                <div class="form-row" style="padding:0px;">
+                                                        <label style="width: 200px;">{{key}}</label>
+                                                        <div class="readonly" style="width: 400px; margin-left:200px">{{value}}</div>
+                                                </div>
+                                                {% endfor %}
+                                            </fieldset>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div>
+                            <label>Total rental:</label>
+                            <div class="readonly">{{  customer_data.symbol }}  {{ rental_data.total|floatformat:2 }}</div>
+                        </div>
+                    </div>
+                    </fieldset>
+                </div>
+                {% endfor %}
+                <h3>--------</h3>
+                <div class="form-row">
+                    <div>
+                        <label>Sub Total:</label>
+                        <div class="readonly">{{  customer_data.symbol }} {{ customer_data.sub_total|floatformat:2 }}</div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div>
+                        <label>Tax:</label>
+                        <div class="readonly">{{  customer_data.symbol }} {{ customer_data.tax|floatformat:2 }}</div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div>
+                        <label>Total:</label>
+                        <div class="readonly">{{  customer_data.symbol }} {{ customer_data.total|floatformat:2 }}</div>
+                    </div>
+                </div>
+            </fieldset>
+            {% endif %}
+            {% endfor %}
+        </div>
+        <div class="submit-row">
+            <input type="submit" value="NEXT" class="default" name="NEXT">
+            <a href="?step=main"><input type="button" value="PREV" name="PREV"></a>
+            <p class="deletelink-box"><input type="submit" value="Cancel" style="background: var(--delete-button-bg)" name="cancel"></p>
+        </div>
+    </form>
+</div>
+{% endblock %}

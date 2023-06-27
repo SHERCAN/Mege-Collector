@@ -1,0 +1,51 @@
+<div>
+    <h2>{{ c_data.data.device_name }}</h2>
+    <div class="form-row filed-name">
+        <div>
+            <label class="required">Device id:</label>
+            <div class="readonly">{{ c_data.data.manufacturer_device_id }}</div>
+        </div>
+    </div>
+    <div class="form-row filed-name">
+        <div>
+            <label class="required">Model:</label>
+            <div class="readonly">{{ c_data.data.model }}</div>
+        </div>
+    </div>
+    <div class="form-row filed-name">
+        <div>
+            <label class="required">Firmware:</label>
+            <div class="readonly">{{ c_data.data.firmware }}</div>
+        </div>
+    </div>
+    <div class="form-row filed-name">
+        <div>
+            <label class="required">Connected:</label>
+            <div class="readonly">{{ c_data.data.device_connected }}</div>
+        </div>
+    </div>
+    <div class="form-row filed-name">
+        <div>
+            <label class="required">Data resolution:</label>
+            <div class="readonly">{{ c_data.resolution_label }}</div>
+        </div>
+    </div>
+    <div class="form-row filed-name">
+        <div>
+            <label class="required">From date:</label>
+            <div class="readonly">{{ c_data.from_date }}</div>
+        </div>
+    </div>
+    <div class="form-row filed-name">
+        <div>
+            <label class="required">Channels:</label>
+            <div class="readonly">
+                <ul>
+                    {% for channel_name in c_data.channel_names %}
+                    <li>{{ channel_name }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

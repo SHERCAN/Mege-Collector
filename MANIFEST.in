@@ -1,0 +1,9 @@
+include LICENSE
+include AUTHORS
+include README.md
+recursive-include megedc/templates *
+recursive-include megedc/static *
+recursive-include megedc/data_export/templates *
+recursive-include megedc/general/templates *
+recursive-include megedc/billing/templates *
+recursive-include megedc/x6gateapi/templates *

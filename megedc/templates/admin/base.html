@@ -1,0 +1,23 @@
+{% extends "admin/base.html" %}
+{% load static megedc %}
+
+{% block extrahead %}
+<script src="{% static 'admin/js/client_select.js' %}" defer></script>
+{% endblock %}
+
+{% block usertools %}
+{% if user.is_superuser%}
+<form id="client_change_form" method="post" action="{% url 'admin:client-select' %}">
+    {% csrf_token %}
+    {{ client_change_form.chgc_redirect }}
+    Select Client: {{ client_change_form.chgc_client }}
+</form>
+{% endif %}
+{{ block.super }}
+{% endblock %}
+
+{% block footer %}
+<div id="footer">
+    <span style="float: right; font-size: 10px;">Mege Data Collector {% megedc_version %}</span>
+</div>
+{% endblock %}

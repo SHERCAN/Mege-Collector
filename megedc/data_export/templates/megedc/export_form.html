@@ -1,0 +1,195 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls static admin_list %}
+
+{% block content %}
+<div class="content-main">
+    <fieldset class="module aligned">
+        <div class="form-row">
+            <label class="required" for="megedc_client">Client:</label>
+            <select id="megedc_client">
+                <option value="-1">Select client</option>
+                {% for client_id, client_name in clients %}
+                <option value="{{ client_id }}">{{ client_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-row">
+            <label class="required" for="megedc_project">Project:</label>
+            <select id='megedc_project' disabled>
+                <option value="-1" selected>Select project</option>
+            </select>
+        </div>
+        <div class="form-row">
+            <label class="required" for="megedc_gateway">Gateway:</label>
+            <select id='megedc_gateway' disabled>
+                <option value="-1" selected>Select gateway</option>
+            </select>
+        </div>
+        <div class="form-row">
+            <label class="required" for="megedc_devices">Devices:</label>
+            <select id='megedc_devices' multiple disabled>
+            </select>
+        </div>
+        <div class="form-row">
+            <label class="required" for="megedc_vars">Variables:</label>
+            <select id='megedc_vars' multiple disabled>
+            </select>
+        </div>
+        <div class="form-row">
+            <label for="json_url">json_url:</label>
+            <a id="mege_export_link" href="#">No Link</a>
+        </div>
+        <div class="submit-row">
+            <input id="mege_go_btn" type="button" value="GO!" class="default"/>
+        </div>
+    </fieldset>
+</div>
+<script type="text/javascript">
+    var megedc_go_url = '#';
+    function megedc_update_form(data) {
+        var projects = data.projects
+        var projects_select = django.jQuery("#megedc_project");
+        projects_select.html('');
+        projects_select.append('<option value="-1">Select project</option>');
+        
+        if (projects){
+            for (var i in projects) {
+                projects_select.append('<option value=' + projects[i][0] + '>' + projects[i][1] + '</option>');
+            }
+            projects_select.removeAttr('disabled');
+        } else {
+            projects_select.attr('disabled', 'disabled');
+        }
+
+        var gateways = data.gateways
+        var gateways_select = django.jQuery("#megedc_gateway");
+        gateways_select.html('');
+        gateways_select.append('<option value="-1" selected>Select gateway</option>');
+        if (gateways){
+            for (var i in gateways) {
+                gateways_select.append('<option value=' + gateways[i][0] + '>' + gateways[i][1] + ' - ' + gateways[i][2] + '</option>');
+            }
+            gateways_select.removeAttr('disabled');
+        } else {
+            gateways_select.attr('disabled', 'disabled');
+        }
+
+        var devices = data.devices
+        var devices_select = django.jQuery("#megedc_devices");
+        devices_select.html('');
+        if (devices){
+            for (var i in devices) {
+                devices_select.append('<option value=' + devices[i][0] + '>[ ' + devices[i][2] + ' - ' + devices[i][3] + ' ] ' + devices[i][1] + '</option>');
+            }
+            devices_select.removeAttr('disabled');
+        } else {
+            devices_select.attr('disabled', 'disabled');
+        }
+
+        var vars = data.vars
+        var vars_select = django.jQuery("#megedc_vars");
+        vars_select.html('');
+        if (vars){
+            for (var i in vars) {
+                vars_select.append('<option value=' + vars[i][0] + '>' + vars[i][1] + '</option>');
+            }
+            vars_select.removeAttr('disabled');
+        } else {
+            vars_select.attr('disabled', 'disabled');
+        }
+    }
+
+    function megedc_set_link(qp_attr, qp_var, vars=null){
+        var export_link = django.jQuery("#mege_export_link");
+        query_pars_str = '?' + qp_attr + '=' + qp_var;
+        if (vars){
+            query_pars_str += '&vars=' + vars
+        }
+        var json_url = encodeURI('{% url 'data_export:rtdata-export' %}' + query_pars_str);
+        export_link.html('Copy this link');
+        export_link.attr('href', json_url);
+        megedc_go_url = encodeURI(query_pars_str);
+    }
+
+    django.jQuery(document).ready(function(){
+        django.jQuery("#megedc_client").change(function(){
+            django.jQuery.ajax({
+                method: "GET",
+                url: "form_data/",
+                data: {
+                    'client_id': django.jQuery(this).val()
+                },
+            }).done(function(data){
+                megedc_update_form(data);
+            });
+        });
+        
+        django.jQuery("#megedc_project").change(function(){
+            var project_id = django.jQuery(this).val();
+            django.jQuery.ajax({
+                method: "GET",
+                url: "form_data/",
+                data: {
+                    'client_id': django.jQuery("#megedc_client").val(),
+                    'project_id': project_id,
+                },
+            }).done(function(data){
+                megedc_update_form(data);
+                django.jQuery("#megedc_project").val(project_id);
+            });
+        });
+
+        django.jQuery("#megedc_gateway").change(function(){
+            var project_id = django.jQuery("#megedc_project").val();
+            var gateway_id = django.jQuery(this).val();
+            megedc_set_link('gateway', gateway_id);
+            django.jQuery.ajax({
+                method: "GET",
+                url: "form_data/",
+                data: {
+                    'client_id': django.jQuery("#megedc_client").val(),
+                    'project_id': project_id,
+                    'gateway_id': django.jQuery(this).val(),
+                },
+            }).done(function(data){
+                megedc_update_form(data);
+                django.jQuery("#megedc_project").val(project_id);
+                django.jQuery("#megedc_gateway").val(gateway_id);
+            });
+        });
+
+        django.jQuery("#megedc_devices").change(function(){
+            var project_id = django.jQuery("#megedc_project").val();
+            var gateway_id = django.jQuery("#megedc_gateway").val();
+            var devices_a = django.jQuery(this).val();
+            var devices = devices_a.join(',');
+            megedc_set_link('devices', devices);
+            django.jQuery.ajax({
+                method: "GET",
+                url: "form_data/",
+                data: {
+                    'client_id': django.jQuery("#megedc_client").val(),
+                    'project_id': project_id,
+                    'gateway_id': gateway_id,
+                    'device_ids': devices
+                },
+            }).done(function(data){
+                megedc_update_form(data);
+                django.jQuery("#megedc_project").val(project_id);
+                django.jQuery("#megedc_gateway").val(gateway_id);
+                django.jQuery("#megedc_devices").val(devices_a);
+            });
+        });
+
+        django.jQuery("#megedc_vars").change(function(){
+            var devices_a = django.jQuery("#megedc_devices").val();
+            var devices = devices_a.join(',');
+            megedc_set_link('devices', devices, django.jQuery(this).val().join(','));
+        });
+
+        django.jQuery("#mege_go_btn").click(function(){
+            window.location.href = megedc_go_url;
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "admin/base_site.html" %}
+{% load i18n l10n admin_urls static %}
+
+{% block content %}
+<p>Confirm projects remove:</p>
+<ul>
+{% for item in summary %}
+    <li>Project name: {{ item.name }}</li>
+    <ul>
+        <li>Gateway count: {{ item.gateways_count }}</li>
+        <li>Devices count: {{ item.devices_count }}</li>
+        <li>RTData count: {{ item.rtdata_count }}</li>
+        <li>Real time data values count: {{ item.datanode_count }}</li>
+        <li>Trend logs values count: {{ item.trnds_count }}</li>
+    </ul>
+{% endfor %}
+</ul>
+<form method="post">{% csrf_token %}
+    {{ form }}
+    <input type="hidden" name="action" value="{{ action_name }}">
+    <input type="hidden" name="post" value="yes">
+    <input  type="submit" name="action_cancel" value="Cancel" />
+    <input class="default" type="submit" name="action_confirm" value="Confirm" />
+</form>
+{% endblock %}
